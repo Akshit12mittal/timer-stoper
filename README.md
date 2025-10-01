@@ -24,10 +24,7 @@ It includes:
 ---
 
 ## ▶️ Access the Project
-👉 [**Click Here to Access Stopwatch/Timer**](./index.html)  
-
-(Open the file `index.html` in your browser)
-
+👉 [**Click Here to Access Stopwatch/Timer**](https://akshit12mittal.github.io/timer-stoper/)  
 ---
 
 ## 📌 Notes
