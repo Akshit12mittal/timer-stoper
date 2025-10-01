@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timer / Stopwatch</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { 
+      background: #fff; 
+      color: #000; 
+      font-family: "Georgia", "Times New Roman", serif;
+      margin: 0; 
+      padding: 0; 
+      transition: background 0.3s, color 0.3s;
+    }
+    #fullscreen-container { 
+      width: 100%; height: 100vh; 
+      display: flex; flex-direction: column; 
+      justify-content: center; align-items: center; 
+      transition: background 0.3s, color 0.3s;
+    }
+    #fullscreen-container.fullscreen { 
+      position: fixed; top:0; left:0; width:100vw; height:100vh; z-index:9999; 
+    }
+    #fullscreen-container.fullscreen #time-display { 
+      font-size: 15vw !important; 
+      letter-spacing: 0.05em; 
+    }
+    #time-display { 
+      font-size: 5rem; font-weight: bold; 
+    }
+    #mode-label { 
+      font-size: 2rem; margin-bottom: 20px; 
+    }
+    .btn { border-radius: 0; font-weight: bold; }
+    .form-control { border-radius: 0; text-align: center; }
+
+    /* Dark mode styles */
+    body.dark { background: #000; color: #fff; }
+    body.dark .btn-outline-dark { 
+      color: #fff; border-color: #fff; 
+    }
+    body.dark .btn-outline-dark:hover { 
+      background: #fff; color: #000; 
+    }
+    body.dark input { 
+      background: #111; color: #fff; border-color: #fff; 
+    }
+    body.dark small.text-muted { color: #aaa !important; }
+  </style>
+</head>
+<body>
+  <div id="fullscreen-container">
+    <h1 id="mode-label">Stopwatch</h1>
+    
+    <!-- Timer Inputs -->
+    <div id="timer-inputs" class="d-none mb-3">
+      <input type="number" id="hours" class="form-control d-inline w-auto mx-1" placeholder="Hours" min="0">
+      <input type="number" id="minutes" class="form-control d-inline w-auto mx-1" placeholder="Minutes" min="0">
+      <input type="number" id="seconds" class="form-control d-inline w-auto mx-1" placeholder="Seconds" min="0">
+    </div>
+    
+    <!-- Display -->
+    <div id="time-display" class="mb-4">00:00:00</div>
+    
+    <!-- Controls -->
+    <div class="btn-group my-3 flex-wrap">
+      <button id="start-btn" class="btn btn-outline-dark px-4">Start</button>
+      <button id="reset-btn" class="btn btn-outline-dark px-4">Reset</button>
+      <button id="mode-btn" class="btn btn-outline-dark px-4">Switch to Timer</button>
+      <button id="theme-btn" class="btn btn-outline-dark px-4">Dark Mode</button>
+    </div>
+    
+    <small class="text-muted mt-3">[Space] Start/Pause • [R] Reset • [S] Switch Mode • [F] Fullscreen • [D] Dark/Light</small>
+  </div>
+
+  <script>
+    let totalSeconds = 0, timerInterval = null, running = false, mode = "stopwatch";
+    const timeDisplay = document.getElementById("time-display"),
+          startBtn = document.getElementById("start-btn"),
+          resetBtn = document.getElementById("reset-btn"),
+          modeBtn = document.getElementById("mode-btn"),
+          themeBtn = document.getElementById("theme-btn"),
+          modeLabel = document.getElementById("mode-label"),
+          timerInputs = document.getElementById("timer-inputs"),
+          hIn = document.getElementById("hours"),
+          mIn = document.getElementById("minutes"),
+          sIn = document.getElementById("seconds");
+    
+    const formatTime = s => 
+      [Math.floor(s/3600), Math.floor((s%3600)/60), s%60]
+      .map(x=>String(x).padStart(2,"0")).join(":");
+    
+    const updateDisplay = ()=> timeDisplay.textContent = formatTime(totalSeconds);
+    
+    function toggleTimer(){
+      if(running){ 
+        clearInterval(timerInterval); running=false; startBtn.textContent="Start"; return; 
+      }
+      if(mode==="timer" && !totalSeconds){
+        totalSeconds=(+hIn.value||0)*3600+(+mIn.value||0)*60+(+sIn.value||0);
+        if(totalSeconds<=0) return alert("Enter valid time.");
+      }
+      running=true; startBtn.textContent="Pause";
+      timerInterval=setInterval(()=>{
+        if(mode==="stopwatch"){ totalSeconds++; updateDisplay(); }
+        else if(totalSeconds>0){ totalSeconds--; updateDisplay(); }
+        else { clearInterval(timerInterval); running=false; alert("Time's Up!"); startBtn.textContent="Start"; }
+      },1000);
+    }
+    
+    function resetTimer(){
+      clearInterval(timerInterval); running=false; totalSeconds=0; updateDisplay();
+      startBtn.textContent="Start"; hIn.value=mIn.value=sIn.value="";
+    }
+    
+    function switchMode(){
+      resetTimer();
+      if(mode==="stopwatch"){ mode="timer"; modeLabel.textContent="Timer"; modeBtn.textContent="Switch to Stopwatch"; timerInputs.classList.remove("d-none"); }
+      else { mode="stopwatch"; modeLabel.textContent="Stopwatch"; modeBtn.textContent="Switch to Timer"; timerInputs.classList.add("d-none"); }
+    }
+
+    function toggleTheme(){
+      document.body.classList.toggle("dark");
+      themeBtn.textContent = document.body.classList.contains("dark") ? "Light Mode" : "Dark Mode";
+    }
+    
+    startBtn.onclick=toggleTimer; resetBtn.onclick=resetTimer; modeBtn.onclick=switchMode; themeBtn.onclick=toggleTheme;
+    
+    document.onkeydown=e=>{
+      if(e.code==="Space"){ e.preventDefault(); toggleTimer(); }
+      if(e.key.toLowerCase()==="r") resetTimer();
+      if(e.key.toLowerCase()==="s") switchMode();
+      if(e.key.toLowerCase()==="f") document.getElementById("fullscreen-container").classList.toggle("fullscreen");
+      if(e.key.toLowerCase()==="d") toggleTheme();
+    };
+    
+    updateDisplay();
+  </script>
+</body>
+</html>
